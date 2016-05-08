@@ -182,6 +182,9 @@
 					<Ulica1><%= stranka.Address %> </Ulica1>
 					<Ulica2></Ulica2>
 					<Ulica3></Ulica3>
+				</NazivPartnerja>
+				<Ulica>
+					<Ulica1><%= stranka.Address %></Ulica1>
 				</Ulica>
 				<Kraj><%= stranka.City %></Kraj>
 				<NazivDrzave><%= stranka.Country %></NazivDrzave>
@@ -210,7 +213,7 @@
 			</ReferencniPodatkiPodjetja>
 			<KontaktiPodjetja>
 				<KontaktnaOseba>
-					<ImeOsebe><%= stranka.FirstName  + " " + stranka.LastName + " (" +stranka.Email + ")"%></ImeOsebe>
+					<ImeOsebe><%= stranka.FirstName + " " + stranka.LastName + " (" + stranka.Email + ")"%></ImeOsebe>
 				</KontaktnaOseba>
 				<Komunikacije>
 					<StevilkaKomunikacije><%= stranka.Phone %></StevilkaKomunikacije>

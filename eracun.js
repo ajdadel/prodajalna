@@ -71,6 +71,7 @@ streznik.get('/', function(zahteva, odgovor) {
         odgovor.render('seznam', {seznamPesmi: vrstice});
       }
   });
+
   }
 })
 
@@ -158,6 +159,13 @@ var strankaIzRacuna = function(racunId, callback) {
     })
 }
 
+var podatkiOStranki = function(id, callback) {
+    pb.all("SELECT * FROM Customer WHERE Customer.CustomerId = " + id,
+    function(napaka, vrstice) {
+      callback(napaka, vrstice);
+    })
+}
+
 // Izpis računa v HTML predstavitvi na podlagi podatkov iz baze
 streznik.post('/izpisiRacunBaza', function(zahteva, odgovor) {
   var form = new formidable.IncomingForm();
@@ -179,19 +187,25 @@ streznik.post('/izpisiRacunBaza', function(zahteva, odgovor) {
 
 // Izpis računa v HTML predstavitvi ali izvorni XML obliki
 streznik.get('/izpisiRacun/:oblika', function(zahteva, odgovor) {
-  pesmiIzKosarice(zahteva, function(pesmi) {
-    if (!pesmi) {
-      odgovor.sendStatus(500);
-    } else if (pesmi.length == 0) {
-      odgovor.send("<p>V košarici nimate nobene pesmi, \
-        zato računa ni mogoče pripraviti!</p>");
-    } else {
-      odgovor.setHeader('content-type', 'text/xml');
-      odgovor.render('eslog', {
-        vizualiziraj: zahteva.params.oblika == 'html' ? true : false,
-        postavkeRacuna: pesmi
-      })  
-    }
+      pesmiIzKosarice(zahteva, function(pesmi) {
+      if (!pesmi) {
+        odgovor.sendStatus(500);
+      } else if (pesmi.length == 0) {
+        odgovor.send("<p>V košarici nimate nobene pesmi, \
+          zato računa ni mogoče pripraviti!</p>");
+      } else {
+        podatkiOStranki(zahteva.session.stranka, function(napaka, stranka){ 
+          odgovor.setHeader('content-type', 'text/xml');
+          odgovor.render('eslog', {
+            vizualiziraj: zahteva.params.oblika == 'html' ? true : false,
+            postavkeRacuna: pesmi,
+            stranka: stranka[0]
+          });
+          
+       });
+      
+      }
+   
   })
 })
 
@@ -288,7 +302,7 @@ streznik.post('/stranka', function(zahteva, odgovor) {
 
 // Odjava stranke
 streznik.post('/odjava', function(zahteva, odgovor) {
-      zahteva.session.destroy();
+    zahteva.session.destroy();
     odgovor.redirect('/prijava') 
 })
 
