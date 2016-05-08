@@ -47,7 +47,9 @@ function davcnaStopnja(izvajalec, zanr) {
 
 // Prikaz seznama pesmi na strani
 streznik.get('/', function(zahteva, odgovor) {
+
     if(!zahteva.session.stranka){
+
     odgovor.redirect('/prijava');
   }else{
   pb.all("SELECT Track.TrackId AS id, Track.Name AS pesem, \
@@ -70,7 +72,9 @@ streznik.get('/', function(zahteva, odgovor) {
           vrstice[i].stopnja = davcnaStopnja(vrstice[i].izvajalec, vrstice[i].zanr);
         odgovor.render('seznam', {seznamPesmi: vrstice});
       }
+
   })
+
   }
 })
 
@@ -280,8 +284,10 @@ streznik.post('/stranka', function(zahteva, odgovor) {
 
 // Odjava stranke
 streznik.post('/odjava', function(zahteva, odgovor) {
+
     zahteva.session.kosarica=[];
     zahteva.session=null;
+
     odgovor.redirect('/prijava') 
 })
 
