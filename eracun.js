@@ -47,6 +47,9 @@ function davcnaStopnja(izvajalec, zanr) {
 
 // Prikaz seznama pesmi na strani
 streznik.get('/', function(zahteva, odgovor) {
+    if(!zahteva.session.stranka){
+    odgovor.redirect('/prijava');
+  }else{
   pb.all("SELECT Track.TrackId AS id, Track.Name AS pesem, \
           Artist.Name AS izvajalec, Track.UnitPrice * " +
           razmerje_usd_eur + " AS cena, \
@@ -68,6 +71,7 @@ streznik.get('/', function(zahteva, odgovor) {
         odgovor.render('seznam', {seznamPesmi: vrstice});
       }
   })
+  }
 })
 
 // Dodajanje oz. brisanje pesmi iz košarice
@@ -146,6 +150,13 @@ var strankaIzRacuna = function(racunId, callback) {
     })
 }
 
+var podatkiOStranki = function(id, callback) {
+    pb.all("SELECT * FROM Customer WHERE Customer.CustomerId = " + id,
+    function(napaka, vrstice) {
+      callback(napaka, vrstice);
+    })
+}
+
 // Izpis računa v HTML predstavitvi na podlagi podatkov iz baze
 streznik.post('/izpisiRacunBaza', function(zahteva, odgovor) {
   odgovor.end();
@@ -153,22 +164,26 @@ streznik.post('/izpisiRacunBaza', function(zahteva, odgovor) {
 
 // Izpis računa v HTML predstavitvi ali izvorni XML obliki
 streznik.get('/izpisiRacun/:oblika', function(zahteva, odgovor) {
-  vrniStranke(function(napaka1, stranke) {
-    pesmiIzKosarice(zahteva, function(pesmi) {
+      pesmiIzKosarice(zahteva, function(pesmi) {
       if (!pesmi) {
         odgovor.sendStatus(500);
       } else if (pesmi.length == 0) {
         odgovor.send("<p>V košarici nimate nobene pesmi, \
           zato računa ni mogoče pripraviti!</p>");
       } else {
-        odgovor.setHeader('content-type', 'text/xml');
-        odgovor.render('eslog', {
-          vizualiziraj: zahteva.params.oblika == 'html' ? true : false,
-          postavkeRacuna: pesmi,
-          stranka: stranke[0]
-        })  
+        podatkiOStranki(zahteva.session.stranka, function(napaka, stranka){ 
+
+          odgovor.setHeader('content-type', 'text/xml');
+          odgovor.render('eslog', {
+            vizualiziraj: zahteva.params.oblika == 'html' ? true : false,
+            postavkeRacuna: pesmi,
+            stranka: stranka[0]
+          }); 
+          
+       })
+      
       }
-    })
+   
   })
 })
 
@@ -239,7 +254,6 @@ streznik.post('/stranka', function(zahteva, odgovor) {
     if(!zahteva.session.stranka){
       zahteva.session.stranka=polja.seznamStrank;
     }
-
     odgovor.redirect('/')
   });
 })
